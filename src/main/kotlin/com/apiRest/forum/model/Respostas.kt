@@ -2,7 +2,7 @@ package com.apiRest.forum.model
 
 import java.time.LocalDateTime
 
-class Respostas (
+data class Respostas (
     val id: Long?= null,
     val mensagem: String,
     val dataCriacao: LocalDateTime = LocalDateTime.now(),
