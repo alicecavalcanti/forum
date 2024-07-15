@@ -2,6 +2,7 @@ package com.apiRest.forum.exception
 
 import com.apiRest.forum.dto.ErrorView
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -12,6 +13,9 @@ import kotlin.collections.HashMap
 //@restControllerAdvice informa ao spring que a classe está tratando exception
 @RestControllerAdvice
 class ExceptionHandler(){
+
+    private val log = LoggerFactory.getLogger(ExceptionHandler::class.java)
+
     // O @ExceptionHandler está especifica a exceções que será tratada
     @ExceptionHandler(NotFoundException:: class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -19,6 +23,7 @@ class ExceptionHandler(){
         exception: NotFoundException,
         request: HttpServletRequest
     ): ErrorView {
+        log.error("entidade não encontrada", exception)
         return ErrorView(
             status = HttpStatus.NOT_FOUND.value(),
             error = HttpStatus.NOT_FOUND.name,
@@ -33,6 +38,7 @@ class ExceptionHandler(){
         exception: MethodArgumentNotValidException,
         request: HttpServletRequest
     ): ErrorView {
+        log.error("DTO Inválido", exception)
                         // estrutura de dados para armazanar coleções de chave e valor correspondente
         val errorMessage = HashMap<String, String?>()
             exception.bindingResult.fieldErrors.forEach{
@@ -53,6 +59,7 @@ class ExceptionHandler(){
         exception: Exception,
         request: HttpServletRequest
     ): ErrorView {
+        log.error("erro geral", exception)
         return ErrorView(
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = HttpStatus.INTERNAL_SERVER_ERROR.name,

@@ -1,6 +1,5 @@
 package com.apiRest.forum.dto
 
-import org.apache.logging.log4j.message.Message
 import java.time.LocalDateTime
 
 data class ErrorView (

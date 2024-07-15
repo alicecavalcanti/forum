@@ -12,8 +12,8 @@ data class AtualizacaoTopicoForm (
 
     @field:NotEmpty
     @field:Size(min = 5, max = 100)
-    val titulo: String,
+    var titulo: String,
 
     @field:NotEmpty
-    val mensagem: String
+    var mensagem: String
 )
