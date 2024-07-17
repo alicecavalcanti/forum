@@ -45,15 +45,15 @@ class TopicoController(private val topicoService: TopicoService) {
         return topicoService.listar(nomeCurso, paginacao)
 
     }
-
+    @GetMapping("/{idTopico}/respostas")
+    fun listarRespostasTopico(@PathVariable idTopico: Long,
+                              @PageableDefault(size = 4, sort = ["dataCriacao"], direction = Sort.Direction.DESC) paginacao: Pageable)
+    : Page<RespostasView> {
+        return topicoService.listarRespostasTopico(idTopico, paginacao);
+    }
     @GetMapping("/{id}")
     fun buscarTopicoPorId(@PathVariable id : Long) : TopicoView {
         return topicoService.buscarTopicoPorId(id)
-    }
-
-    @GetMapping("/respostas/{id}")
-    fun buscarRespostasTopico(@PathVariable id: Long): List<RespostasView> {
-        return topicoService.buscarRespostasTopico(id);
     }
 
     @PostMapping()
@@ -71,6 +71,17 @@ class TopicoController(private val topicoService: TopicoService) {
         return ResponseEntity.created(uri).body(topicoCadastrado)
 
     }
+    @PostMapping("/{idTopico}/respostas")
+    @Transactional
+    fun cadastrarRespostaCodigo(
+        @PathVariable idTopico: Long,
+        @RequestBody novaRespostaform: NovaRespostaForm,
+        uriBuilder: UriComponentsBuilder): ResponseEntity<RespostasView>{
+
+        val respostaCadastrada = topicoService.cadastrarRespostaTopico(novaRespostaform, idTopico)
+        val uri = uriBuilder.path("/topicos/${idTopico}/respostas").build().toUri()
+        return ResponseEntity.created(uri).body(respostaCadastrada)
+    }
 
     @PutMapping
     @Transactional
@@ -79,6 +90,12 @@ class TopicoController(private val topicoService: TopicoService) {
         val topicoView = topicoService.atualizarTopico(form)
         return topicoView
     }
+    @PutMapping("/{idTopico}/respostas")
+    @Transactional
+    fun atualizarRespostaTopico (@PathVariable idTopico: Long,@RequestBody @Valid form: AtualizacaoRespostasForm): RespostasView{
+        val respostaView = topicoService.atualizarRespostaTopico(idTopico, form)
+        return respostaView
+    }
 
     @DeleteMapping("/{id}")
     @Transactional
@@ -86,6 +103,11 @@ class TopicoController(private val topicoService: TopicoService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deletarTopico (@PathVariable id: Long){
         topicoService.deletarTopico(id)
+    }
+    @DeleteMapping("/respostas/{id}")
+    @Transactional
+    fun deletarResposta(@PathVariable id: Long){
+        topicoService.deletarRespostaTopico(id)
     }
 
     @GetMapping("/relatorio")
