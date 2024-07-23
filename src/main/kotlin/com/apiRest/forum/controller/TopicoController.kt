@@ -4,6 +4,7 @@ import com.apiRest.forum.dto.*
 import com.apiRest.forum.service.TopicoService
 import com.apiRest.forum.model.Respostas
 import com.apiRest.forum.repositories.TopicoRepository
+import com.apiRest.forum.service.UsuarioService
 import jakarta.validation.Valid
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -113,6 +116,10 @@ class TopicoController(private val topicoService: TopicoService) {
     @GetMapping("/relatorio")
     fun relatorio(): List<TopicoPorCategoriaDto>{
         return topicoService.relatorio()
+    }
+    @GetMapping("/login")
+    fun login(): String{
+        return "Usuário Logado"
     }
 
 }
