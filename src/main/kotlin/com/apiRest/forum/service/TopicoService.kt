@@ -1,73 +1,106 @@
 package com.apiRest.forum.service
-
-import com.apiRest.forum.dto.AtualizacaoTopicoForm
-import com.apiRest.forum.dto.NovoTopicoForm
-import com.apiRest.forum.dto.TopicoView
+import com.apiRest.forum.dto.*
 import com.apiRest.forum.exception.NotFoundException
+import com.apiRest.forum.mapper.RespostaFormMapper
+import com.apiRest.forum.mapper.RespostaViewMapper
 import com.apiRest.forum.mapper.TopicoFormMapper
 import com.apiRest.forum.mapper.TopicoViewMapper
 import com.apiRest.forum.model.Topico
+import com.apiRest.forum.repositories.RespostasRepository
+import com.apiRest.forum.repositories.TopicoRepository
+import jakarta.persistence.EntityManager
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import java.util.*
-import java.util.stream.Collectors
+
 
 @Service
-class TopicoService(private var listaTopicos: List<Topico> = ArrayList(),
-                    private var topicoViewMapper: TopicoViewMapper,
-                    private var topicoFormMapper: TopicoFormMapper,
-                    private val notFoundMessage: String = "tópico não encontrado"
+class TopicoService(
+    private val respostasRepository: RespostasRepository,
+    private val respostaFormMapper: RespostaFormMapper,
+    private val respostaViewMapper: RespostaViewMapper,
+    private val topicoViewMapper: TopicoViewMapper,
+    private val topicoFormMapper: TopicoFormMapper,
+    private val notFoundMessage: String = "tópico não encontrado",
+    private val topicoRepository: TopicoRepository,
+    private val em: EntityManager // há a possibilidade de configurar o entity manager manualmente, mesmo usando o repository
 ){
+    fun listar(nomeCurso : String?, paginacao: Pageable): Page<TopicoView>{
+        // o metódo stream realiza uma ação para cada elemento e retorna o elemento como uma classe stream
+                                // findAll pega todos os registros do banco de dados
+        print(em)
+        val topico = if(nomeCurso == null){
+            topicoRepository.findAll(paginacao)
 
-    fun listar(): List<TopicoView>{
-        return listaTopicos.stream().map{
+        }else {
+            topicoRepository.findByCursoNome(nomeCurso, paginacao)
+        }
+        return topico.map{
             t -> topicoViewMapper.map(t)
-        }.collect(Collectors.toList())
+        }
+    }
+    fun listarRespostasTopico(id: Long, paginacao: Pageable) : Page<RespostasView> {
+        val respostas = respostasRepository.findByTopicoId(id, paginacao)
+        return respostas.map { t-> respostaViewMapper.map(t) }
     }
 
-    fun buscarPorId(id: Long): TopicoView {
-       var topicoBuscado = listaTopicos.stream().filter({
-           t -> t.id == id
-       }).findFirst().orElseThrow{NotFoundException(notFoundMessage)}
+    fun buscarTopicoPorId(id: Long): TopicoView {
+       var topicoBuscado = topicoRepository.findById(id)
+           .orElseThrow{NotFoundException(notFoundMessage)}
         return topicoViewMapper.map(topicoBuscado);
     }
 
+    // form dto de entrada | view dto saida
     fun cadastrarTopico(novoTopicoForm: NovoTopicoForm): TopicoView{
         var topico = topicoFormMapper.map(novoTopicoForm)
-        topico.id = listaTopicos.size.toLong() + 1
-
-        listaTopicos = listaTopicos.plus(topico)
-
+        topicoRepository.save(topico)
         return topicoViewMapper.map(topico)
     }
 
     fun atualizarTopico(form: AtualizacaoTopicoForm): TopicoView{
-        var topicoQueSeraAtualizado = listaTopicos.stream().filter { t ->
-            t.id == form.id
-        }.findFirst().orElseThrow{NotFoundException(notFoundMessage)}
+                                        //o findById retorna um objeto option encontrado
+        var topicoQueSeraAtualizado = topicoRepository.findById(form.id)
+            .orElseThrow{NotFoundException(notFoundMessage)}
+        topicoQueSeraAtualizado.titulo = form.titulo
+        topicoQueSeraAtualizado.mensagem = form.mensagem
 
-        val topicoAtualizado = Topico(
-            id = form.id,
-            titulo = form.titulo,
-            mensagem = form.mensagem,
-            autor = topicoQueSeraAtualizado.autor,
-            curso = topicoQueSeraAtualizado.curso,
-            status = topicoQueSeraAtualizado.status,
-            respostas = topicoQueSeraAtualizado.respostas
-        )
+        topicoRepository.save(topicoQueSeraAtualizado)
+        return topicoViewMapper.map(topicoQueSeraAtualizado)
+    }
+    fun atualizarRespostaTopico(idTopico: Long, form: AtualizacaoRespostasForm): RespostasView {
+        var respostaQueSeraAtualizada=  respostasRepository.findById(form.id).orElseThrow({NotFoundException(notFoundMessage)})
 
-        listaTopicos = listaTopicos.minus(topicoQueSeraAtualizado).plus(topicoAtualizado)
+            respostaQueSeraAtualizada.mensagem = form.mensagem
 
-        return topicoViewMapper.map(topicoAtualizado)
+            respostasRepository.save(respostaQueSeraAtualizada)
+
+            return respostaViewMapper.map(respostaQueSeraAtualizada)
     }
 
     fun deletarTopico(id : Long){
-        // o stream permite utilizar um metódo a cada elemento da lista e retorna um stream como retorno
-        val topico = listaTopicos.stream().filter({
-            t -> t.id == id
-            // o findFirst retorna um option(classe que tem o conteúdo do filtro)
-        }).findFirst().orElseThrow{NotFoundException(notFoundMessage)}
-
-        listaTopicos = listaTopicos.minus(topico)
+        topicoRepository.deleteById(id);
     }
+    fun deletarRespostaTopico(id : Long){
+        respostasRepository.deleteById(id);
+    }
+
+    fun relatorio(): List<TopicoPorCategoriaDto>{
+        return topicoRepository.relatorio()
+    }
+
+    fun cadastrarRespostaTopico(novaRespostaform: NovaRespostaForm, idTopico: Long): RespostasView {
+        val resposta = respostaFormMapper.map(novaRespostaform)
+        resposta.topico = findTopico(idTopico)
+
+        respostasRepository.save(resposta)
+
+        return respostaViewMapper.map(resposta)
+
+    }
+    fun findTopico(idTopico: Long): Topico{
+        return topicoRepository.findById(idTopico).orElseThrow({NotFoundException("Tópico não encontrado")})
+    }
+
+
 
 }

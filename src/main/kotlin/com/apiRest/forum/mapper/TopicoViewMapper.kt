@@ -13,7 +13,7 @@ class TopicoViewMapper : Mapper<Topico, TopicoView> {
             mensagem = topico.mensagem,
             status = topico.status,
             dataCriacao = topico.dataCriacao
-        )
+       )
     }
 
 }
