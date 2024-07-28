@@ -1,53 +1,46 @@
 package com.apiRest.forum.config
 
+import com.apiRest.forum.security.JWTAuthenticationFilter
+
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.AuthenticationProvider
-import org.springframework.security.authentication.ProviderManager
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider
-import org.springframework.security.config.Customizer
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 
 @Configuration
 @EnableWebSecurity // informa a autorização dos pacotes para o spring
-class SecurityConfiguration() {
+class SecurityConfiguration(private val jwtUtil: JWTUtil) {
+
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests {
-                it.requestMatchers("/h2-console/**").permitAll()
+                    // quais solicitações a configuração de segurança do spring será aplicada
+                it.requestMatchers(HttpMethod.POST,"/sign-in").permitAll()
+                it.requestMatchers(HttpMethod.POST,"/sign-up").permitAll()
                 it.requestMatchers("/topicos").hasAuthority("LEITURA-ESCRITA")
                 it.anyRequest().authenticated()
             }
-            .httpBasic(Customizer.withDefaults())
-            .formLogin { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
-            //.authenticationProvider(authenticationProvider)
-
+            .addFilterBefore(JWTAuthenticationFilter(jwtUtil = jwtUtil),
+                UsernamePasswordAuthenticationFilter().javaClass)
         return http.build()
     }
 
-// Essa função também está autenticando o usuário, pegando a implementação da interface no user detailsService e fazendo
-// a autenticação
     @Bean
-    fun authenticatedManager(
-        userDetailsService: UserDetailsService,
-        passwordEncoder: PasswordEncoder
-    ): AuthenticationManager {
-        val authenticationProvider = DaoAuthenticationProvider()
-        authenticationProvider.setUserDetailsService(userDetailsService)
-        authenticationProvider.setPasswordEncoder(encoder())
-        return ProviderManager(authenticationProvider)
+    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager{
+        return authenticationConfiguration.authenticationManager
     }
 
     @Bean

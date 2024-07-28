@@ -3,7 +3,6 @@ package com.apiRest.forum.service
 import com.apiRest.forum.exception.NotFoundException
 import com.apiRest.forum.model.Curso
 import com.apiRest.forum.repositories.CursoRepository
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service

@@ -13,5 +13,4 @@ data class Role (
     private val nome: String
 ): GrantedAuthority{
     override fun getAuthority() = nome
-
 }

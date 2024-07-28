@@ -2,10 +2,9 @@ package com.apiRest.forum.controller
 
 import com.apiRest.forum.dto.*
 import com.apiRest.forum.service.TopicoService
-import com.apiRest.forum.model.Respostas
-import com.apiRest.forum.repositories.TopicoRepository
 import com.apiRest.forum.service.UsuarioService
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
@@ -14,8 +13,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -28,13 +25,14 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.UriComponentsBuilder
+import javax.print.attribute.standard.PrinterInfo
 
 
 @RestController
-@RequestMapping("/topicos")
-                        // construtor primário da classe
-class TopicoController(private val topicoService: TopicoService) {
+@RequestMapping("/topicos") // construtor primário da classe
+class TopicoController(private val topicoService: TopicoService, private val usuarioService: UsuarioService) {
 
+    private val log = LoggerFactory.getLogger(PrinterInfo::class.java)
     @GetMapping
     @Cacheable("topicos") // armazena no cache recursos pouco atualizados
     fun listar(
@@ -116,10 +114,6 @@ class TopicoController(private val topicoService: TopicoService) {
     @GetMapping("/relatorio")
     fun relatorio(): List<TopicoPorCategoriaDto>{
         return topicoService.relatorio()
-    }
-    @GetMapping("/login")
-    fun login(): String{
-        return "Usuário Logado"
     }
 
 }

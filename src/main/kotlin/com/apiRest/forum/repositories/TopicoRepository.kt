@@ -1,7 +1,6 @@
 package com.apiRest.forum.repositories
 
 import com.apiRest.forum.dto.TopicoPorCategoriaDto
-import com.apiRest.forum.model.Respostas
 import com.apiRest.forum.model.Topico
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
