@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 data class Respostas (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long?= null,
+    val id: Int?= null,
     var mensagem: String,
     val dataCriacao: LocalDateTime = LocalDateTime.now(),
     @ManyToOne

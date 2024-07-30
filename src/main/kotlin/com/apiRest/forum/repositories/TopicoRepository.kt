@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.stereotype.Repository
 
+@Repository
 interface TopicoRepository: JpaRepository<Topico, Long> {
     // O jpa faz internamente a busca pelo curso pela ordem da nomeação da função e
     // o spring cuida da instanciação

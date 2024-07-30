@@ -7,7 +7,7 @@ import jakarta.persistence.*
 data class Usuario (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long ?= null,
+    val id: Int?= null,
     val nome: String,
     val email: String,
     val password : String,
