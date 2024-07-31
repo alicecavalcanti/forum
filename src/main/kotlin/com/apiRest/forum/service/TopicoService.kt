@@ -8,7 +8,6 @@ import com.apiRest.forum.mapper.TopicoViewMapper
 import com.apiRest.forum.model.Topico
 import com.apiRest.forum.repositories.RespostasRepository
 import com.apiRest.forum.repositories.TopicoRepository
-import jakarta.persistence.EntityManager
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -17,25 +16,24 @@ import java.time.LocalDate
 
 @Service
 class TopicoService(
+    private val topicoRepository: TopicoRepository,
     private val respostasRepository: RespostasRepository,
     private val respostaFormMapper: RespostaFormMapper,
     private val respostaViewMapper: RespostaViewMapper,
     private val topicoViewMapper: TopicoViewMapper,
     private val topicoFormMapper: TopicoFormMapper,
-    private val notFoundMessage: String = "tópico não encontrado",
-    private val topicoRepository: TopicoRepository,
-    private val em: EntityManager // há a possibilidade de configurar o entity manager manualmente, mesmo usando o repository
+    private val notFoundMessage: String = "tópico não encontrado"
+    //private val em: EntityManager  há a possibilidade de configurar o entity manager manualmente, mesmo usando o repository
 ){
     fun listar(nomeCurso : String?, paginacao: Pageable): Page<TopicoView>{
         // o metódo stream realiza uma ação para cada elemento e retorna o elemento como uma classe stream
                                 // findAll pega todos os registros do banco de dados
-        print(em)
-        val topico = if(nomeCurso == null){
+         // ?. uso de if, else mais resumido
+        val topico = nomeCurso?.let{
+            topicoRepository.findByCursoNome(nomeCurso, paginacao)
+        }?:
             topicoRepository.findAll(paginacao)
 
-        }else {
-            topicoRepository.findByCursoNome(nomeCurso, paginacao)
-        }
         return topico.map{
             t -> topicoViewMapper.map(t)
         }
