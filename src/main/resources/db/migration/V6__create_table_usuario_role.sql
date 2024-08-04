@@ -1,5 +1,5 @@
 create table usuario_role(
-    id INT AUTO_INCREMENT not null,
+    id INT AUTO_INCREMENT not null unique,
     usuario_id int NOT NULL,
     role_id int NOT NULL,
 

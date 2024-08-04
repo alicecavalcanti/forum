@@ -1,6 +1,6 @@
 create table curso(
-    id INT AUTO_INCREMENT not null,
-    nome varchar(50) not null,
+    id INT AUTO_INCREMENT not null unique,
+    nome varchar(50) not null unique,
     categoria varchar(50) not null,
     primary key(id)
 );

@@ -5,9 +5,7 @@ import com.apiRest.forum.mapper.RespostaFormMapper
 import com.apiRest.forum.mapper.RespostaViewMapper
 import com.apiRest.forum.mapper.TopicoFormMapper
 import com.apiRest.forum.mapper.TopicoViewMapper
-import com.apiRest.forum.model.Topico
-import com.apiRest.forum.model.TopicoTest
-import com.apiRest.forum.model.TopicoViewTest
+import com.apiRest.forum.model.*
 import com.apiRest.forum.repositories.RespostasRepository
 import com.apiRest.forum.repositories.TopicoRepository
 import io.mockk.every
@@ -24,7 +22,13 @@ import java.util.*
 
 class TopicoServiceTest {
 
-    val topicos = PageImpl(listOf(TopicoTest.build()))
+    private var usuario = UsuarioTest.build()
+
+    private var curso = CursoTest.build()
+
+    private val topico = TopicoTest.build(curso, usuario)
+
+    val topicos = PageImpl(listOf(topico))
 
     val paginacao:Pageable = mockk()
 
@@ -60,8 +64,6 @@ class TopicoServiceTest {
         verify (exactly = 1) { topicoRepository.findByCursoNome(any(), any())}
         verify (exactly = 1) {topicoViewMapper.map(capture(slot))}
         verify (exactly = 0) {topicoRepository.findAll(paginacao)}
-
-        val topico = TopicoTest.build()
 
         assertThat(slot.captured.titulo).isEqualTo(topico.titulo)
         assertThat(slot.captured.mensagem).isEqualTo(topico.mensagem)

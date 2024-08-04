@@ -1,5 +1,5 @@
 CREATE TABLE role(
-    id INT AUTO_INCREMENT not null,
+    id INT AUTO_INCREMENT not null unique,
     NOME VARCHAR(50) NOT NULL,
     PRIMARY KEY (id)
 );

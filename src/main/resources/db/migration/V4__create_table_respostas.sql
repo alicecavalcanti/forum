@@ -1,5 +1,5 @@
 create table respostas(
-    id INT AUTO_INCREMENT not null,
+    id INT AUTO_INCREMENT not null unique,
     mensagem varchar(300) not null,
     data_criacao datetime not null,
     autor_id int not null,

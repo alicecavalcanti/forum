@@ -1,5 +1,5 @@
 create table topico(
-    id INT AUTO_INCREMENT not null,
+    id INT AUTO_INCREMENT not null unique,
     titulo varchar(50) not null,
     mensagem varchar(300) not null,
     data_criacao datetime not null,
