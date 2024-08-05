@@ -3,6 +3,7 @@ package com.apiRest.forum.controller
 import com.apiRest.forum.dto.*
 import com.apiRest.forum.service.TopicoService
 import com.apiRest.forum.service.UsuarioService
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
@@ -29,6 +30,7 @@ import javax.print.attribute.standard.PrinterInfo
 
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/topicos") // construtor primário da classe
 class TopicoController(private val topicoService: TopicoService, private val usuarioService: UsuarioService) {
 

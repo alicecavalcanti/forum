@@ -25,6 +25,9 @@ class SecurityConfiguration(private val jwtUtil: JWTUtil) {
         http.csrf { it.disable() }
             .authorizeHttpRequests {
                     // quais solicitações a configuração de segurança do spring será aplicada
+                it.requestMatchers("/swagger-ui/*").permitAll()
+                it.requestMatchers("/v3/api-docs/**").permitAll()
+                it.requestMatchers("/swagger-ui.html").permitAll()
                 it.requestMatchers(HttpMethod.POST,"/sign-in").permitAll()
                 it.requestMatchers(HttpMethod.POST,"/sign-up").permitAll()
                 it.requestMatchers("/topicos").hasAuthority("LEITURA-ESCRITA")
