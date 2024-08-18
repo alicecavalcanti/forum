@@ -4,6 +4,7 @@ import com.apiRest.forum.exception.NotFoundException
 import com.apiRest.forum.model.Usuario
 import com.apiRest.forum.repositories.RoleRepository
 import com.apiRest.forum.repositories.UsuarioRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCrypt
@@ -11,12 +12,13 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class UsuarioService(
+class UsuarioService @Autowired constructor(
     private val UsuarioRepository: UsuarioRepository,
-    private val roleRepository: RoleRepository) : UserDetailsService {
+    private val roleRepository: RoleRepository
+) : UserDetailsService {
 
 
-    fun cadatrarUser(usuario: Usuario) : Usuario{
+    fun cadatrarUser(usuario: Usuario): Usuario {
 
         var user = Usuario(
             nome = usuario.nome,
@@ -38,7 +40,7 @@ class UsuarioService(
         return UserDetail(usuario)
     }
 
-    fun hashPassword(password: String): String{
+    fun hashPassword(password: String): String {
         val salt = BCrypt.gensalt()
         return BCrypt.hashpw(password, salt)
     }

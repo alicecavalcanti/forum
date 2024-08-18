@@ -1,53 +1,80 @@
 package com.apiRest.forum.controller
 
 import com.apiRest.forum.config.JWTUtil
+import com.apiRest.forum.configuration.RedisTestContainerConfiguration
+import com.apiRest.forum.configuration.TestContainerMySQLExtension
+import com.apiRest.forum.model.CursoTest
 import com.apiRest.forum.model.Role
+import com.apiRest.forum.model.TopicoTest
+import com.apiRest.forum.model.UsuarioTest
+import com.apiRest.forum.repositories.CursoRepository
+import com.apiRest.forum.repositories.TopicoRepository
+import com.apiRest.forum.repositories.UsuarioRepository
+import com.apiRest.forum.service.TopicoService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+@ExtendWith(RedisTestContainerConfiguration::class, TestContainerMySQLExtension::class)
 class TopicoControllerTest {
-    // precisa ter um tópico e usuario  inserido no banco para que esse teste funcione
 
     @Autowired
-    private lateinit var webApplicationContext: WebApplicationContext
+    private lateinit var topicoRepository: TopicoRepository
 
-    // o lateinit é um modificador que permite que a variável seja inicializada tardiamente
+    @Autowired
+    private lateinit var usuarioRepository: UsuarioRepository
+
+    @Autowired
+    private lateinit var topicoService: TopicoService
+
+    @Autowired
+    private lateinit var cursoRepository: CursoRepository
+
+    private var usuario = UsuarioTest.build()
+
+    private var curso = CursoTest.build()
+
+    private val topico = TopicoTest.build(curso, usuario)
+
+    @Autowired
     private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var jwtUtil: JWTUtil
-
     companion object{
         private const val RECURSO = "/topicos"
         private val RECURSO_ID = RECURSO.plus("/"+"%s")
     }
     private var token : String? = null
-
     @BeforeEach
     fun setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder?>(
-                SecurityMockMvcConfigurers
-                    .springSecurity()).build()
+        usuarioRepository.deleteAll()
+        cursoRepository.deleteAll()
+        topicoRepository.deleteAll()
 
         token = gerarToken()
     }
-
     @Test
     fun `deve retornar codigo 400 quando chamar topicos sem token`(){
+        usuarioRepository.save(usuario)
+        cursoRepository.save(curso)
+        topicoRepository.save(topico)
         mockMvc.get(RECURSO).andExpect { status { is4xxClientError() } }
     }
 
     fun gerarToken(): String? {
+        usuarioRepository.save(usuario)
+        cursoRepository.save(curso)
+        topicoRepository.save(topico)
         val authorities = mutableListOf(Role(1, "LEITURA-ESCRITA"))
         return jwtUtil.generateToken("alice@email.com", authorities)
     }

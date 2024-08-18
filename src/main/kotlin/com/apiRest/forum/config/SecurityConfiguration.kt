@@ -31,7 +31,12 @@ class SecurityConfiguration(private val jwtUtil: JWTUtil) {
                 it.requestMatchers(HttpMethod.POST,"/sign-in").permitAll()
                 it.requestMatchers(HttpMethod.POST,"/sign-up").permitAll()
                 it.requestMatchers("/topicos").hasAuthority("LEITURA-ESCRITA")
+                it.requestMatchers("/relatorios").permitAll()
                 it.anyRequest().authenticated()
+            }
+
+            .formLogin {
+                it.loginPage("/relatorios").permitAll()
             }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

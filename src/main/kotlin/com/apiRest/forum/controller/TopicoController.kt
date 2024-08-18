@@ -6,6 +6,7 @@ import com.apiRest.forum.service.UsuarioService
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
@@ -32,41 +33,48 @@ import javax.print.attribute.standard.PrinterInfo
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/topicos") // construtor primário da classe
-class TopicoController(private val topicoService: TopicoService, private val usuarioService: UsuarioService) {
+class TopicoController @Autowired constructor(
+    private val topicoService: TopicoService,
+    private val usuarioService: UsuarioService
+) {
 
     private val log = LoggerFactory.getLogger(PrinterInfo::class.java)
+
     @GetMapping
-    @Cacheable("topicos") // armazena no cache recursos pouco atualizados
     fun listar(
-        @RequestParam(required = false) nomeCurso : String?,
+        @RequestParam(required = false) nomeCurso: String?,
         //muda o padrão da paginação para os configurados
-        @PageableDefault(size = 4, sort = ["dataCriacao"], direction = Sort.Direction.DESC) paginacao: Pageable)
-        // A classe pageable vai fazer com que a lista dos tópicos venha
-        // dentro da paginação, por isso o retorno não é mais um List
-        : Page<TopicoView>{
+        @PageableDefault(size = 4, sort = ["dataCriacao"], direction = Sort.Direction.DESC) paginacao: Pageable
+    )
+    // A classe pageable vai fazer com que a lista dos tópicos venha
+    // dentro da paginação, por isso o retorno não é mais um List
+            : Page<TopicoView> {
 
         return topicoService.listar(nomeCurso, paginacao)
 
     }
+
     @GetMapping("/{idTopico}/respostas")
-    fun listarRespostasTopico(@PathVariable idTopico: Long,
-                              @PageableDefault(size = 4, sort = ["dataCriacao"], direction = Sort.Direction.DESC) paginacao: Pageable)
-    : Page<RespostasView> {
+    fun listarRespostasTopico(
+        @PathVariable idTopico: Long,
+        @PageableDefault(size = 4, sort = ["dataCriacao"], direction = Sort.Direction.DESC) paginacao: Pageable
+    )
+            : Page<RespostasView> {
         return topicoService.listarRespostasTopico(idTopico, paginacao);
     }
+
     @GetMapping("/{id}")
-    fun buscarTopicoPorId(@PathVariable id : Long) : TopicoView {
+    fun buscarTopicoPorId(@PathVariable id: Long): TopicoView {
         return topicoService.buscarTopicoPorId(id)
     }
 
     @PostMapping()
     @Transactional
-    @CacheEvict(value = ["topicos"], allEntries = true)
     fun cadastrarTopico(
         // o @valid é do spring validation(somente é cadastrado o tópico que segue a validação)
-        @RequestBody @Valid novoTopicoForm : NovoTopicoForm,
+        @RequestBody @Valid novoTopicoForm: NovoTopicoForm,
         uriBuilder: UriComponentsBuilder
-        ) : ResponseEntity<TopicoView>{
+    ): ResponseEntity<TopicoView> {
 
         val topicoCadastrado = topicoService.cadastrarTopico(novoTopicoForm)
 
@@ -74,12 +82,14 @@ class TopicoController(private val topicoService: TopicoService, private val usu
         return ResponseEntity.created(uri).body(topicoCadastrado)
 
     }
+
     @PostMapping("/{idTopico}/respostas")
     @Transactional
-    fun cadastrarRespostaCodigo(
+    fun cadastrarRespostaTopico(
         @PathVariable idTopico: Long,
-        @RequestBody novaRespostaform: NovaRespostaForm,
-        uriBuilder: UriComponentsBuilder): ResponseEntity<RespostasView>{
+        @RequestBody @Valid novaRespostaform: NovaRespostaForm,
+        uriBuilder: UriComponentsBuilder
+    ): ResponseEntity<RespostasView> {
 
         val respostaCadastrada = topicoService.cadastrarRespostaTopico(novaRespostaform, idTopico)
         val uri = uriBuilder.path("/topicos/${idTopico}/respostas").build().toUri()
@@ -89,32 +99,36 @@ class TopicoController(private val topicoService: TopicoService, private val usu
     @PutMapping
     @Transactional
     @CacheEvict(value = ["topicos"], allEntries = true)
-    fun atualizarTopico (@RequestBody @Valid form: AtualizacaoTopicoForm): TopicoView{
+    fun atualizarTopico(@RequestBody @Valid form: AtualizacaoTopicoForm): TopicoView {
         val topicoView = topicoService.atualizarTopico(form)
         return topicoView
     }
+
     @PutMapping("/{idTopico}/respostas")
     @Transactional
-    fun atualizarRespostaTopico (@PathVariable idTopico: Long,@RequestBody @Valid form: AtualizacaoRespostasForm): RespostasView{
+    fun atualizarRespostaTopico(
+        @PathVariable idTopico: Long,
+        @RequestBody @Valid form: AtualizacaoRespostasForm
+    ): RespostasView {
         val respostaView = topicoService.atualizarRespostaTopico(idTopico, form)
         return respostaView
     }
 
     @DeleteMapping("/{id}")
     @Transactional
-    @CacheEvict(value = ["topicos"], allEntries = true)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deletarTopico (@PathVariable id: Long){
+    fun deletarTopico(@PathVariable id: Long) {
         topicoService.deletarTopico(id)
     }
+
     @DeleteMapping("/respostas/{id}")
     @Transactional
-    fun deletarResposta(@PathVariable id: Long){
+    fun deletarResposta(@PathVariable id: Long) {
         topicoService.deletarRespostaTopico(id)
     }
 
     @GetMapping("/relatorio")
-    fun relatorio(): List<TopicoPorCategoriaDto>{
+    fun relatorio(): List<TopicoPorCategoriaDto> {
         return topicoService.relatorio()
     }
 
